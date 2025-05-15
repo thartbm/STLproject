@@ -74,6 +74,9 @@ Preprocess_all_files()
 # Then we fit the two models to the point and arc target data for each of the participants. This step in particular might take a long time, as it fits 2 models each to the data of 74 participants.
 bothModelFits()
 
+# For the prediction part, we want to fit an exponential curve to each participants' long exposure task data. This also takes long, but probably not as long as the other fits.
+getLongExpFits()
+
 ```
 
 
@@ -182,8 +185,6 @@ plotModelMSEs()
 We can indeed see that the fits are slightly better for the capped model than for the attribution model. However, the difference is not huge so the statistical difference found in the t-tests might be misleading.
 
 We now plot the average errors of the model predictions over the rotation size, to visualize if errors are completely random, or to some degree systematic.
-
-
 
 Nevertheless, we can not distinguish with full confidence which function describes the behavior best - for now.
 
