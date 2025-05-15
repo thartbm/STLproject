@@ -11,6 +11,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+
 Implicit single trial learning rates are:
 
 - sensitive to task errors
