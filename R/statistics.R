@@ -3,7 +3,7 @@
 
 bothModelFits <- function() {
   
-  for (maxrot in c(90)) {  
+  for (maxrot in c(45,60,90)) {  
     
     df <- loadSTLdata(maxrots=c(maxrot))
     
