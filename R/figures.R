@@ -10,11 +10,7 @@ plotData <- function(models=FALSE, target='inline') {
   }
   
   if (target == 'pdf') {
-    if (models) {
-      pdf(file=filename, width=width, height=height)
-    } else {
-      pdf(file=filename, width=width, height=height)
-    }
+    pdf(file=filename, width=width, height=height)
   }
   
   layout(mat=matrix(c(1:3), ncol=1))

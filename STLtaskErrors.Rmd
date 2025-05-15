@@ -241,7 +241,7 @@ What we can also see is that the raw data is very noisy. The ideal response woul
 # Save plots in standard file formats
 
 ```{r}
-for (target in c('pdf')) {
+for (target in c('pdf','svg')) {
   plotData(target=target)
   plotTaskErrorEffects(target=target)
   plotData(models=TRUE, target=target)
