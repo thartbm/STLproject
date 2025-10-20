@@ -10,6 +10,7 @@ downloadData <- function(groups=c('45','60','90','delayed'),
   
   if ('processed' %in% get) {
     filelist[['data']] <- c(filelist[['data']], 'processed.zip')
+    get <- get[-which(get == 'processed')]
   }
   
   for (source in get) {
