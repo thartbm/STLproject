@@ -17,7 +17,9 @@ Implicit single trial learning rates are:
 
 - sensitive to task errors
 - capped at a maximum of around 6°
-- mildly predictive of prolonged adaptation
+- somewhat predictive of prolonged adaptation
+- decreased with terminal feedback, but 
+- do not further decrease with delayed feedback
 
 # Overview
 
@@ -123,8 +125,8 @@ Let's first have a look at the data.
 We have taken the difference between the post- and pre-perturbation no-cursor trials, removed any that exceeded 60 degrees in either direction, collapsed response across positive and negative rotations, and then within each participant took the median reach deviation. We also bootstrap a 95% confidence interval of the mean across participants' median reach deviations. (These should be related to t-tests: if the average in one sample falls outside the 95% confidence interval of the other sample, it was unlikely drawn from the same source.)
 
 
-```{r fig.width=6,fig.height=8}
-fig2_fig4_data(delays=TRUE)
+```{r fig.width=5,fig.height=5.5}
+fig23_data()
 ```
 We can see that in the arc targets, where task error is removed (or very much decreased) the reach aftereffects are also much smaller. Or in other words, it looks like the inclusion of task error in the point targets, does facilitate implicit adaptation.
 
@@ -134,25 +136,13 @@ Let's however do the statistics. First, we do repeated measures ANOVAs on the re
 taskErrorANOVAs()
 ```
 
-In both cases we see a main effect of target type, as well as a main effect of rotation, but no interaction.
-
-Since we are mainly interested in the effect of task error, we will dive deeper into the difference between reach aftereffects following point targets and arc target. We will make a plot of the differences, an denote whether or not the effect is significant at each rotation using t-tests, correcting the false discovery rate (using R's `p.adjust()` function with the 'fdr' method, within each group).
-
-```{r fig.width=6, fig.height=8}
-fig3_TEdiffs()
-```
-
-Light purple (open) circles indicate t-tests that are not significant. Dark purple (open) circles indicate t-tests that are significant. And dark purple, filled circles indicate t-tests that are significant after FDR correction.
-
-We can see that the effect is there in both groups, but is only clearly significant in the 60 degree group. This could be because of a stimulus range effect (up to 45 degrees or up to 60 degrees) or because there are 31 participants in the 45 degree group, while the 40 degree group has a little more power with 43 participants. The 90 degree group has even more with 51 participants.
-
-The pattern seems to be that the difference is small for the smallest rotation, and again goes down for larger rotations. We might want to test this for even larger rotations: it could be that the effect of task error disappears with even larger rotations.
+In all three groups we see a main effect of target type, as well as a main effect of rotation, but no interaction.
 
 # Reach deviations as a function of rotation size
 
-The two broad kinds of thoughts on how (implicitly learned) reach deviations should relate to rotation size, can be categorized as follows. First, there is the idea that as errors get very large, it is increasingly less likely that we caused them and hence it also makes less sense for us to automatically correct for them. This school of thought would predict lower implicit learning rates for larger rotations. Second, there is the idea that the implicit adaptation systems will do their work no matter what, but they will only learn so much on each trial. This school of thought would predict that implicit learning rates would increase up to a point with larger and larger errors but it would be capped beyond that point.
+There are broadly two ways of thinking about how implicit adaptation relates to rotation size. First, there is the idea that as errors get very large, it is increasingly less likely that we caused them and hence it also makes less sense for us to automatically correct for them (Wei & Koerding; Tsay??). This would predict lower implicit learning rates for larger rotations. Second, there is the idea that the implicit adaptation systems will do their work no matter what, but they will only learn so much on each trial, i.e. implicit adaptation is "capped" (Kim / Morehead). This would predict that implicit learning rates would increase up to a point with larger and larger errors but it would be capped beyond that point.
 
-Here we test which of the two ideas can predict the data best, by using two descriptive functions, that each capture the core ideas of one of the two ideas described above. 
+These ideas apply to implicit adaptation after a prolonged exposure to a rotation, while here we test initial implicit adaptation instead. Nevertheless, we test the same two ideas, just applied to our single-trial learning data. Below we test two simple models, capturing these two ideas.
 
 ## Attenuation model
 
@@ -180,57 +170,47 @@ The function has two free parameters as well, and can also be used to predict $x
 
 ## Parameter limits
 
-When fitting the models, we can set a reasonable range of values. For both the rate and slope parameters (of the capped fixed rate function and the attenuation function respectively), we assumed they would be well below 100% learning from any error, but also above 0% learning. o for these parameters, we set the limits to [0.05, 1.0] for the capped fixed-rate function's rate parameter, and to [0.001, 1.0] for the attenuation function's slope parameter.These are comparable but slightly more restrictive for the capped-fixed rate function.
+When fitting the models, we can set a reasonable range of values. For both the rate and slope parameters (of the capped fixed rate function and the attenuation function respectively), we assumed they would be well below 100% learning from any error, but also above 0% learning. So for these parameters, we set the limits to [0.05, 1.0] for the capped fixed-rate function's rate parameter, and to [0.001, 1.0] for the attenuation function's slope parameter.These are comparable but slightly more restrictive for the capped-fixed rate function.
 
-For the cap parameter of the capped fixed-rate function, sets a maximum on how much participants learn implicitly after a single trial. The contribution of implicit adaptation after many trials has been shown to consistently be between 10 and 20 degrees. In D'Amario et al, 2024 (bioRxiv) we consistently see around 2 to 3 degrees of learning after 1 trial. To allow for the possibility that people somehow learn the maximum amount after a single trial, while also alowing a little less learning than in our own previous study, we set the limits for this parameter to [1, 25] in degrees.
+The cap parameter of the capped fixed-rate function, sets a maximum on how much participants learn implicitly after a single trial. The contribution of implicit adaptation after many trials has been shown to consistently be between 10 and 20 degrees. In D'Amario et al, 2024 (bioRxiv) we consistently see around 2 to 3 degrees of learning after 1 trial. To allow for the possibility that people somehow learn the maximum amount after a single trial, while also allowing a little less learning than in our own previous study, we set the limits for this parameter to [1, 25] in degrees.
 
 The width parameter of the attenuation function is harder to set limits for. In Zhang et al, 2024 (eLife) we see maximum learning (and a maximum learning rate) for rotations around 16 degrees. In Tsay et al (which one was it?) we see maximum learning for rotations around 18 degrees. We wanted to give a bit more leeway here, so we we set the limits for this parameter to [1, 40] in degrees.
 
 # Function fitting
 
-We fit both functions to the raw data for each participant, separately for the point targets and for the arc targets. The fitting procedure starts with a grid search (625 points for the capped implicit function and 900 points for the error attribution function). Afterwards, we use a bounded XYZ optimization method on the top 10 results from the grid search and take the fit with the lowest MSE as the best fit.
+We fit both functions to the averaged reach deviations for each rotation size for each participant in the point target data. The fitting procedure starts with a grid search. Afterwards, we use a bounded optimization method on the top 10 results from the grid search and take the fit with the lowest MSE as the best fit.
 
 We also apply this to the combined data for all participants in each of the two groups.
 
 In the data plot above it looks like the capped function might fit slightly better, let's see how the group-wise fits of the two functions look:
 
-```{r fig.width=6,fig.height=8}
-fig2_fig4_data(models=TRUE)
+```{r fig.width=5,fig.height=5.5}
+fig23_data(models=TRUE)
 ```
 
 It could still be that the attribution function fits better on individual data, with the peaks of those curves distributed across various rotation sizes, flattening the average data function. So we take the MSE values of the best fits of both function in all 4 subsets of data (the two rotations sizes and the two target types). We can then test which function has the lowest MSE, and hence the best fit to the data set.
 
 ## AIC best fit
 
-Most participants have 100 data points for each fit, but because some of them were larger than 60 degrees, there are a some who have 99 data points, and there is one who has 98 data points. These are marginal differences, and since the two functions are fit to the same data, we will ignore this for now, and sum the MSEs across fits, to get one MSE for the capped model and one for the attribution model. Afterward, we can convert this to an AICc and the corresponding log likelihood of each model to decide which one fits best.
+Here we use the MSEs between the two fits and the averaged reach deviations for each (absolute) rotation to calculate an AIC value for each function fit. These can then be used to calculate a relative likelihood of each model in this data set.
 
 ```{r}
 modelLikelihood()
 ```
 
-The models fits are comparable. While the capped implicit model has the best fit, the attribution model is about equally good (p=0.88). Which means we can't really draw any conclusions from this analysis.
-
-
+The capped fixed rate model has the best fit, with the attenuation model much less likely (p<0.001). This means that initial implicit adaptation is not attenuated for larger errors, but rather capped at a maximum level of around 6 degrees.
 
 ## Bayesian test
 
-We can also do a paired t-test on the MSEs across all 74 participants. Here, we show both a Bayesian and regular t-test:
+We can also do a paired t-test on the MSEs across all 129 participants. Which should give the same results. Here, we show both a Bayesian and regular t-test:
 
 ```{r}
 modelTtests()
 ```
 
-Both the Bayesian t-test and the regular t-test show the same result: the capped model has a better fit. Taken together, this might mean that on the whole data set the fits are roughly equally good, with a slight benefit for the capped model. However, the capped model seems to have this slight benefit in most (or all?) participants. We can visualize this as well, by plotting the capped model's MSE's over the attribution model's MSEs:
+Both the Bayesian t-test and the regular t-test show the same result: the capped model has a better fit.
 
-```{r, fig.width=5, fig.height=5}
-fig5_modelMSEs()
-```
-
-We can indeed see that the fits are slightly better for the capped model than for the attribution model. However, the difference is not huge so the statistical difference found in the t-tests might be misleading.
-
-We now plot the average errors of the model predictions over the rotation size, to visualize if errors are completely random, or to some degree systematic.
-
-Nevertheless, we can not distinguish with full confidence which function describes the behavior best - for now.
+We don't need this in the paper, as it doesn't really add any information.
 
 ## Predicting (implicit) adaptation in long exposure from single-trial learning
 
@@ -245,14 +225,12 @@ We can also get a second estimate of implicit adaptation, which we obtain from r
 Here, we plot the predictions, based only on the point target data:
 
 ```{r fig.width=7, fig.height=8}
-fig6_learningPrediction()
+fig3_learningPrediction()
 ```
 
-First, we can see that in each group, participants adapted to the rotation.
+First, we can see that participants adapted to the rotation.
 
->> on average the exponential function seems like a good fit - do we need to confirm in individual participants?
-
-The predictions from both single-trial learning models seem to overshoot the learning according to the exponential fit. We check by how much and calculate AICs for the two model fits, to see if the capped model or attribution model predicts learning in the exponential phase better.
+The predictions from the capped fixed-rate model seem to overshoot the learning according to the exponential fit. We check by how much and calculate AICs for the two model fits, to see if the capped model or attribution model predicts learning in the exponential phase better.
 
 ```{r}
 comparePredictions()
