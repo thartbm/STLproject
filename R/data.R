@@ -2,7 +2,7 @@ library(Reach)
 library(optimx)
 
 downloadData <- function(groups=c('45','60','90','delayed'),
-                          get=c('short','demographics')) {
+                          get=c('short','demographics','processed')) {
   
   # old repo: '6m24e'
   
