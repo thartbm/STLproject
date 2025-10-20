@@ -1,0 +1,317 @@
+---
+title: "Implicit Motor Adaptation in Single-Trial Learning"
+author: "Marius 't Hart"
+date: "2024-10-20"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+Implicit single trial learning rates are:
+
+- sensitive to task errors
+- capped at a maximum of around 6°
+- mildly predictive of prolonged adaptation
+
+# Overview
+
+In this project we ask two main questions about implicit adaptation using a single-trial learning task, and verify whether or not performance in single-trial learning can generalize to regular prolonged learning paradigms.
+
+**First**: whether or not task errors drive implicit motor adaptation is still a matter of debate, with some papers showing task error only affecting explicit learning [citations], and other showing it also affects implicit adaptation [citations]. Aftereffects in single-trial learning paradigms are supposed to gauge implicit responses only, so here we test if task error affects learning in a single-trial learning paradigm.
+
+**Second**: some papers show that the extent of implicit adaptation reverts back to or towards zero for larger errors [citations], while some other papers show it remains at some capped level [citations]. Here we ask what happens to the _rate_ of implicit adaptation across error sizes. Is rate an appropriate way to express the time course of learning, or is it better described in absolute change per trial?
+
+**Bonus**: single-trial learning paradigms have been used in some studies to answer questions about our motor learning apparatus. However, it has not been tested to what degree performance in single-trial learning paradigms can actually tell us about performance in more standard situations. So, after the single-trial learning phase in the experiment (meant to answer the above two questions) we also include a regular prolonged adaptation task with a relatively low perturbation (20°) in order to evoke implicit adaptation only (Modchalingam et al., 2019). We will then test how well data from the single-trial learning phase predicts adaptation in the prolonged learning phase.
+
+# Setup
+
+First, we'll load all the scripts and functions that we need to run the analyses.
+
+Some of the code requires Marius' personal package to be installed. Find it here, with installation instructions: [https://github.com/thartbm/Reach](https://github.com/thartbm/Reach)
+
+```{r}
+# this has functions for downloading, pre-processing and accessing the data:
+source('R/data.R')
+
+# this has functions for the attribution-based function:
+source('R/attributionModel.R')
+
+# this has functions for the capped implicit function:
+source('R/cappedModel.R')
+
+# long exposure fits:
+source('R/longExp.R')
+
+# this has functions to do statistics on our data:
+source('R/statistics.R')
+
+# here is an approach to do test-retest reliability:
+source('R/testRetest.R')
+
+# this file has functions that create figures:
+source('R/figures.R')
+
+# this has functions to preprocess the feedback-delay data:
+source('R/feedbackDelay.R')
+
+# this has functions to do test/retest comparisons on fit parameters:
+source('R/testRetest.R')
+
+```
+
+
+
+# Download the data
+
+```{r eval=FALSE, include=FALSE}
+# it's not necessary to run this code all the time, so eval=FALSE stops it from running
+# include=FALSE also stops it from being shown in notebook output
+# change either to get different effects
+
+# This downloads the data from the OSF repository:
+downloadData()
+# The function has 2 arguments which determines which data gets downloaded, these
+# are the default values:
+# groups=c('45','60','90','delayed'),
+# get=c('demographics', 'processed')
+
+# There are no other groups to get data from. However you could also get the full
+# reach trajectories, by adding 'full' to the get argument. Or just a summary 
+# performance per participant, that we used to pre-process the data by adding 'short'
+# to the get argument.
+
+# If  one of the arguments is empty, no data is downloaded.
+# This also means that the rest of this interactive notebook no longer works.
+
+# Note: the interactive version of the R Notebook is the file 'STLproject.Rmd'
+# that can be downloaded from the linked GitHub repository. The OSF repository 
+# only has "knitted" versions of the notebook: PDF, Word or HTML documents.
+```
+
+# Pre-processing of the data
+
+```{r eval=FALSE, include=FALSE}
+# This creates STL based files: the difference in no-cursor reach directions in the trials before and after each perturbed trial, with the rotation size, trial number and participant indicated. There are 4 files, two each for groups doing rotations up to 45 degrees and up to 60 degrees, and for those, one file each for point targets and arc targets.
+Preprocess_all_files()
+
+# Then we fit the two models to the point and arc target data for each of the participants. This step in particular might take a long time, as it fits 2 models each to the data of 74 participants.
+bothModelFits()
+
+# For the prediction part, we want to fit an exponential curve to each participants' long exposure task data. This also takes long, but probably not as long as the other fits.
+getLongExpFits()
+
+# Finally, for the dleayed feedback group, we also process the data:
+processFeedbackDelayData() 
+# This gets the median, normalized reach aftereffect for every participant + rotation + delay
+
+# this fits the two functions to the first 2 and last 2 superblocks for each
+# participant in the 45/60/90 group
+testRetestFits()
+```
+
+
+# Task error in implicit adaptation
+
+Let's first have a look at the data.
+
+We have taken the difference between the post- and pre-perturbation no-cursor trials, removed any that exceeded 60 degrees in either direction, collapsed response across positive and negative rotations, and then within each participant took the median reach deviation. We also bootstrap a 95% confidence interval of the mean across participants' median reach deviations. (These should be related to t-tests: if the average in one sample falls outside the 95% confidence interval of the other sample, it was unlikely drawn from the same source.)
+
+
+```{r fig.width=6,fig.height=8}
+fig2_fig4_data(delays=TRUE)
+```
+We can see that in the arc targets, where task error is removed (or very much decreased) the reach aftereffects are also much smaller. Or in other words, it looks like the inclusion of task error in the point targets, does facilitate implicit adaptation.
+
+Let's however do the statistics. First, we do repeated measures ANOVAs on the reach aftereffects in both groups. These two ANOVAs have two factors: target type (point or arc) and rotation size (1-45 or 1-60 with 10 values each). Looking at the raw data, there should be an effect of, and of rotation size. There might also be an interaction between target type and rotation as the absolute effect of task error seems larger for the larger rotations (although it might be proportionally the same).
+
+```{r}
+taskErrorANOVAs()
+```
+
+In both cases we see a main effect of target type, as well as a main effect of rotation, but no interaction.
+
+Since we are mainly interested in the effect of task error, we will dive deeper into the difference between reach aftereffects following point targets and arc target. We will make a plot of the differences, an denote whether or not the effect is significant at each rotation using t-tests, correcting the false discovery rate (using R's `p.adjust()` function with the 'fdr' method, within each group).
+
+```{r fig.width=6, fig.height=8}
+fig3_TEdiffs()
+```
+
+Light purple (open) circles indicate t-tests that are not significant. Dark purple (open) circles indicate t-tests that are significant. And dark purple, filled circles indicate t-tests that are significant after FDR correction.
+
+We can see that the effect is there in both groups, but is only clearly significant in the 60 degree group. This could be because of a stimulus range effect (up to 45 degrees or up to 60 degrees) or because there are 31 participants in the 45 degree group, while the 40 degree group has a little more power with 43 participants. The 90 degree group has even more with 51 participants.
+
+The pattern seems to be that the difference is small for the smallest rotation, and again goes down for larger rotations. We might want to test this for even larger rotations: it could be that the effect of task error disappears with even larger rotations.
+
+# Reach deviations as a function of rotation size
+
+The two broad kinds of thoughts on how (implicitly learned) reach deviations should relate to rotation size, can be categorized as follows. First, there is the idea that as errors get very large, it is increasingly less likely that we caused them and hence it also makes less sense for us to automatically correct for them. This school of thought would predict lower implicit learning rates for larger rotations. Second, there is the idea that the implicit adaptation systems will do their work no matter what, but they will only learn so much on each trial. This school of thought would predict that implicit learning rates would increase up to a point with larger and larger errors but it would be capped beyond that point.
+
+Here we test which of the two ideas can predict the data best, by using two descriptive functions, that each capture the core ideas of one of the two ideas described above. 
+
+## Attenuation model
+
+The error attribution model, uses a Gaussian distribution centred on 0 to capture the idea that larger errors are less likely to be attributed to ourselves, as well as a fraction of the error that would be corrected for if they were completely attributed to ourselves:
+
+$x(p) = p \cdot s \cdot \mathcal{N}(p,w^2)$
+
+Where $p$ denotes the perturbation size in degrees, $s$ the fraction of an error that would be corrected for when it is completely attributed to ourselves, and $w^2$ the width of the normal distribution, and $\mathcal{N}$ denotes a normalized Gaussian probability density function with a mean of 0:
+
+$\mathcal{N}(p,w) = e^{-\frac{p^2}{2w^2}}$
+
+This probability distribution function has a mean of 0 ($p=0$), expressing the idea that when errors are small we fully attribute them to ourselves. It is also normalized to be 1 at that center, such that responses to the rotations close to zero are equal to the $s$ parameter. This makes the fitted parameter values more readable, and values of $s$ can be compared directly, but does not affect the fit itself.
+
+The function has two free parameters: $s$ and $w$, and can be used to predict $x$: the reach deviations evoked by a range of perturbation sizes $p$.
+
+## Capped rate model
+
+The capped rate model uses a cap level, and a fraction of that errors would be corrected for until that cap is reached:
+
+$x(p) = min(c, r \cdot p)$
+
+Where $p$ denotes the perturbation size in degrees, $c$ the maximum level that implicit adaptation can correct for on the first trial, and $r$ the fraction (or rate) of errors that is corrected until $c$ is reached.
+
+The function has two free parameters as well, and can also be used to predict $x$: the reach deviations evoke by a range of perturbation sizes $p$.
+
+## Parameter limits
+
+When fitting the models, we can set a reasonable range of values. For both the rate and slope parameters (of the capped fixed rate function and the attenuation function respectively), we assumed they would be well below 100% learning from any error, but also above 0% learning. o for these parameters, we set the limits to [0.05, 1.0] for the capped fixed-rate function's rate parameter, and to [0.001, 1.0] for the attenuation function's slope parameter.These are comparable but slightly more restrictive for the capped-fixed rate function.
+
+For the cap parameter of the capped fixed-rate function, sets a maximum on how much participants learn implicitly after a single trial. The contribution of implicit adaptation after many trials has been shown to consistently be between 10 and 20 degrees. In D'Amario et al, 2024 (bioRxiv) we consistently see around 2 to 3 degrees of learning after 1 trial. To allow for the possibility that people somehow learn the maximum amount after a single trial, while also alowing a little less learning than in our own previous study, we set the limits for this parameter to [1, 25] in degrees.
+
+The width parameter of the attenuation function is harder to set limits for. In Zhang et al, 2024 (eLife) we see maximum learning (and a maximum learning rate) for rotations around 16 degrees. In Tsay et al (which one was it?) we see maximum learning for rotations around 18 degrees. We wanted to give a bit more leeway here, so we we set the limits for this parameter to [1, 40] in degrees.
+
+# Function fitting
+
+We fit both functions to the raw data for each participant, separately for the point targets and for the arc targets. The fitting procedure starts with a grid search (625 points for the capped implicit function and 900 points for the error attribution function). Afterwards, we use a bounded XYZ optimization method on the top 10 results from the grid search and take the fit with the lowest MSE as the best fit.
+
+We also apply this to the combined data for all participants in each of the two groups.
+
+In the data plot above it looks like the capped function might fit slightly better, let's see how the group-wise fits of the two functions look:
+
+```{r fig.width=6,fig.height=8}
+fig2_fig4_data(models=TRUE)
+```
+
+It could still be that the attribution function fits better on individual data, with the peaks of those curves distributed across various rotation sizes, flattening the average data function. So we take the MSE values of the best fits of both function in all 4 subsets of data (the two rotations sizes and the two target types). We can then test which function has the lowest MSE, and hence the best fit to the data set.
+
+## AIC best fit
+
+Most participants have 100 data points for each fit, but because some of them were larger than 60 degrees, there are a some who have 99 data points, and there is one who has 98 data points. These are marginal differences, and since the two functions are fit to the same data, we will ignore this for now, and sum the MSEs across fits, to get one MSE for the capped model and one for the attribution model. Afterward, we can convert this to an AICc and the corresponding log likelihood of each model to decide which one fits best.
+
+```{r}
+modelLikelihood()
+```
+
+The models fits are comparable. While the capped implicit model has the best fit, the attribution model is about equally good (p=0.88). Which means we can't really draw any conclusions from this analysis.
+
+
+
+## Bayesian test
+
+We can also do a paired t-test on the MSEs across all 74 participants. Here, we show both a Bayesian and regular t-test:
+
+```{r}
+modelTtests()
+```
+
+Both the Bayesian t-test and the regular t-test show the same result: the capped model has a better fit. Taken together, this might mean that on the whole data set the fits are roughly equally good, with a slight benefit for the capped model. However, the capped model seems to have this slight benefit in most (or all?) participants. We can visualize this as well, by plotting the capped model's MSE's over the attribution model's MSEs:
+
+```{r, fig.width=5, fig.height=5}
+fig5_modelMSEs()
+```
+
+We can indeed see that the fits are slightly better for the capped model than for the attribution model. However, the difference is not huge so the statistical difference found in the t-tests might be misleading.
+
+We now plot the average errors of the model predictions over the rotation size, to visualize if errors are completely random, or to some degree systematic.
+
+Nevertheless, we can not distinguish with full confidence which function describes the behavior best - for now.
+
+## Predicting (implicit) adaptation in long exposure from single-trial learning
+
+Explicit strategies would not benefit participants throughout single-trial learning. This means it might be a better way to assess implicit adaptation than long exposure paradigms where strategies are useful. Participants in our single-trial learning paradigm also engaged in a long exposure block of 200 trials with a 20° rotation that should not evoke any strategies (or at least, not a lot).
+
+We can use the two functions to get predictions for the amount of adaptation after a single rotated trial in this longer training phase. We also need an estimate of implicit adaptation on the very first trial. There are multiple ways to go about this.
+
+First, we could just take the reach deviation on the first trial, but that is the most noisy estimate we can get, and is hence not very informative. We could then average across a few trials, but that no longer matches what our STL data provides. The best (least noisy) estimate of reach deviations on the first trial can be obtained by fitting an exponential decay function to the learning curve, and taking the value after the first rotated trial. This estimate is based on the full data set for each participant and should hence have the least amount of noise - assuming the function fits equally well throughout the timecourse.
+
+We can also get a second estimate of implicit adaptation, which we obtain from reach aftereffects in a block of 20 (no-cursor / zero-clamped?) trials immediately following the 200 rotated trials. We also fit an exponential decay function to this data, and use the first value as an estimate of reach aftereffects after 200 trials. This does NOT tell us the level of implicit adaptation that would be predicted from STL, but it does tell us the asymptotic level of implicit adaptation.
+
+Here, we plot the predictions, based only on the point target data:
+
+```{r fig.width=7, fig.height=8}
+fig6_learningPrediction()
+```
+
+First, we can see that in each group, participants adapted to the rotation.
+
+>> on average the exponential function seems like a good fit - do we need to confirm in individual participants?
+
+The predictions from both single-trial learning models seem to overshoot the learning according to the exponential fit. We check by how much and calculate AICs for the two model fits, to see if the capped model or attribution model predicts learning in the exponential phase better.
+
+```{r}
+comparePredictions()
+```
+
+With adjusted R-squared of 0.39 or higher, and all p-values well below 0.001, all fits are reasonable. The AIC's for the predictions are also very similar for the capped and attribution models, in all 3 groups. And while all the AIC for the capped data is smaller in all 3 groups, this again indicates no big difference between the two approaches.
+
+There is one difference between the two models: the slopes. As can perhaps also be made out in the figure, the slopes of the predictions from the capped model is slightly higher (0.39, 0.46 and 0.56) as compared to the attenuation model (0.34, 0.43 and 0.48 respectively). 
+
+## Potential problems with exponential fit
+
+The slopes are lower than 1, which could mean that the exponential fit underestimates the initial learning. There could also be a difference in responses when participants are doing STL or when they do a long exposure task right after an extended aligned baseline with reinforcement of acquiring the target. First, we want to test if the exponential fit's estimate of people's reach deviation after 1 rotated trial is systematically lower than what they actually do.
+
+Let's first look at the data, comparing the exponential fit's values for that first trial with actual behavior on that trial.
+
+```{r fig.width=7, fig.height=4}
+fig7_1stTrialFits()
+```
+
+The differences between the two don't look very different, but if anything the exponential fit would over-estimate the initial change. Let's test them anyway.
+
+```{r}
+firstTrialTest()
+```
+
+At least in t-tests, they do not show much of a difference. 
+
+What we can also see is that the raw data is very noisy. The ideal response would have been at 20 degrees, but many reaches go in the opposite direction. So using a function fit on the whole sequence indeed reduces noise, and as the above analysis shows, does not systematically mis-estimate the response on the first trial in either direction. At least not by a large amount. If anything, the average prediction from the exponential fit is a little larger than the average of the actual data, which would indicate an effect in the other direction than what could explain the slopes below 1 in the comparisons between what the STL data says and what the exponential fits say.
+
+# Test Restest reliability
+
+Here we test if the fits give more or less the same fitted parameters in the first 2 superblocks as they do in the last 2 superblocks (we just leave the middle one be). We plot the second parameter fits over the first parameter fits.
+
+```{r fig.width=6, fig.height=7}
+fig8_retest()
+```
+The two parameters for the fixed capped-rate function are in the top row, and the two parameters for the attenuation function are in the bottom row. Only the data on the cap parameter looks good.
+
+Let's do linear regressions:
+
+```{r}
+doTestRetestRegressions()
+```
+
+An ordinary least-squares regression on the cap parameter values is significant [R^2_adj:  0.189, F(1,126)=30.6, p=1.755e-07], but so is a linear regression on the width parameter of the attenuation model [R^2_adj=0.03836, F(1,126)=6.065, p=0.01514]. However, we can also see in the figure that for a majority of participants one or both of the width parameters are at the maximum of 40 degrees. Given previous studies, those are not reasonable values. Of course the fitted functions also do not match the data very well.
+
+Linear regressions on the parameter values for the other two parameters are not significant.
+
+However, the cap parameter of the capped fixed-rate function has some measure of reliability, at least within a single session. This means that this parameter could be used to compare pre-and post intervention performance within a participant (and within a session) without worrying about savings or even offline gains. Comparing groups on this parameter might also be possible, but could require much more data per participant or many more participants to get more accurate fits and account for inter-participant variability.
+
+# Save plots in standard file formats
+
+```{r}
+for (target in c('pdf','svg','png','tiff')) {
+  fig2_data(target=target)
+  fig3_learningPrediction(target=target)
+  fig4_retest(target=target)
+}
+
+```
+
+
