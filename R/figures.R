@@ -24,10 +24,20 @@ getColors <- function() {
 }
 
 
-fig2_data <- function(models=TRUE, delays=TRUE, target='inline') {
+fig23_data <- function(models=FALSE, target='inline') {
   
-  filename = 'doc/fig2_alldata'
-  
+  delays <- FALSE
+  if (models == FALSE) {
+    filename <- 'doc/fig2_alldata'
+    width    <- 5
+    height   <- 5.5
+  }
+  if (models == TRUE) {
+    filename <- 'doc/fig3_model_fits'
+    width    <- 5
+    height   <- 5.5
+  }
+
   Reach::setupFigureFile(
     target = target,
     filename = filename,
@@ -61,7 +71,12 @@ fig2_data <- function(models=TRUE, delays=TRUE, target='inline') {
     CIdf <- aggregate(response ~ target + rotation, data=df, FUN=Reach::getConfidenceInterval, method='b', resamples=2000)
     avgdf <- aggregate(response ~ target + rotation, data=df, FUN=mean)
     
-    for (tt in c('point','arc')) {
+    targettypes <- c('point','arc')
+    if (models == TRUE) {
+      targettypes <- c('point')
+    }
+    
+    for (tt in targettypes) {
       
       if (tt == 'point') {
         colors <- c('#0066FFFF', '#0066FF33')
@@ -89,16 +104,16 @@ fig2_data <- function(models=TRUE, delays=TRUE, target='inline') {
               col=colors[1],
               lw=2)
         
-        # attpar = c('s'=fit$s, 'w'=fit$w)
-        # rots = seq(0,maxrot,0.5)
-        # attribution_predictions <- STLPredict(par=attpar,
-        #                                       rotations=rots)
-        # 
-        # lines(x=rots,
-        #       y=attribution_predictions,
-        #       lty=2,
-        #       col=colors[1],
-        #       lw=2)
+        attpar = c('s'=fit$s, 'w'=fit$w)
+        rots = seq(0,maxrot,0.5)
+        attribution_predictions <- STLPredict(par=attpar,
+                                              rotations=rots)
+
+        lines(x=rots,
+              y=attribution_predictions,
+              lty=3,
+              col=colors[1],
+              lw=2)
       } else {
         # lines(x=tavg$rotation, y=tavg$response, col=colors[1], lw=2)
       }
@@ -118,21 +133,23 @@ fig2_data <- function(models=TRUE, delays=TRUE, target='inline') {
     
     
     if (maxrot == 45) {
-      legend(x=20,y=2,
-             legend=c('point target', 'arc target'),
-             lwd=c(2,2),
-             col=c('#0066FFFF','#FF6600FF'),
-             bty='n')
-    }
-    if (maxrot == 60) {
       if (models) {
-        legend(x=20,y=2,
-               legend=c('data', 'model'),
-               lwd=c(1,1),
-               lty=c(1,2),
-               col=c('#999999','#999999'),
+        legend(x=50,y=6,
+               legend=c('data', 'capped fixed-rate model', 'attenuation model'),
+               lwd=c(1,1,1),
+               lty=c(1,2,3),
+               col=c('#0066FFFF','#0066FFFF','#0066FFFF'),
+               bty='n')
+      } else {
+        legend(x=50,y=6,
+               legend=c('point target', 'arc target'),
+               lwd=c(2,2),
+               col=c('#0066FFFF','#FF6600FF'),
                bty='n')
       }
+    }
+    if (maxrot == 60) {
+      
     }
     
     if (maxrot == 45) {
