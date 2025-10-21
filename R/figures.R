@@ -465,11 +465,11 @@ fig23_data <- function(models=FALSE, target='inline') {
 #   
 # }
 
-fig3_learningPrediction <- function(target='inline') {
+fig4_learningPrediction <- function(target='inline') {
   
   Reach::setupFigureFile(
     target = target,
-    filename = 'doc/fig3_prediction',
+    filename = 'doc/fig4_prediction',
     width = 6,
     height = 6,
     dpi=300
@@ -477,7 +477,7 @@ fig3_learningPrediction <- function(target='inline') {
   
   layout(mat=matrix(c(1,1,2,3),ncol=2,byrow=TRUE),widths=c(1,1.25))
   
-  par(mar=c(3.25,3.25,3.25,0.1))
+  par(mar=c(3.25,3.25,2,0.1))
   
   ltc <- getLongTimeCourses()
   timecourses <- rbind(ltc[['45']], ltc[['60']], ltc[['90']])
@@ -535,6 +535,7 @@ fig3_learningPrediction <- function(target='inline') {
        main='predictions', xlab='', ylab='',
        xlim=c(0,15),ylim=c(0,15),
        bty='n',ax=F,asp=1)
+  
   title(xlab='STL prediction [°]',line=2.25)
   title(ylab='exponential fit [°]',line=2.25)
   
@@ -686,7 +687,7 @@ fig3_learningPrediction <- function(target='inline') {
 
 
 
-fig4_retest <- function(target='inline') {
+fig5_retest <- function(target='inline') {
   
   
   Reach::setupFigureFile(
@@ -720,7 +721,7 @@ fig4_retest <- function(target='inline') {
          las=2
     )
     
-    title(main=list('r'='A: capped fixed-rate: rate', 'c'='B: capped fixed-rate: cap', 's'='C: attentuation: slope', 'w'='D: attenuation: width')[[parameter]], line=2.25)
+    title(main=list('r'='A: rate parameter', 'c'='B: cap parameter', 's'='C: attentuation: slope', 'w'='D: attenuation: width')[[parameter]], line=2.25)
     
     lines(x=lim, y=lim, col='#999999')
     
