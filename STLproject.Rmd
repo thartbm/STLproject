@@ -3,8 +3,9 @@ title: "Implicit Motor Adaptation in Single-Trial Learning"
 author: "Marius 't Hart"
 date: "2024-10-20"
 output:
-  word_document: default
   html_document: default
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -137,6 +138,28 @@ taskErrorANOVAs()
 ```
 
 In all three groups we see a main effect of target type, as well as a main effect of rotation, but no interaction.
+
+# Delayed Feedback
+
+Several papers claim that delaying feedback eliminates implicit adaptation, but we have previously found that it only decreases it. Here we test this again, across a range of rotation sizes and delays, in a within-subject design. In this task, each participant experienced 5 different feedback delays (0, 200, 400, 800 and 1600 ms) for 6 rotation sizes (5, 10, 15, 25, 35 and 45 degrees) with only point targets. The initial implicit reach aftereffects can be seen in figure 2.
+
+The 45 group experienced the same range of rotations, but with continuous feedback, so it serves as a reasonable comparison group. We can see that the aftereffects are much reduced for all delays, including the 0 ms delay, which is essentially terminal feedback condition. It does not look like there are any further decreases with longer delays however.
+
+But first, are there any reach aftereffects after only 1 trial with terminal feedback? We do a t-test versus 0 for the 0 ms delay condition:
+
+```{r}
+terminalFeedbackTtest()
+```
+
+Yes, we do get implicit reach aftereffects after a single terminal feedback trial (t(49)=6.384, p<.001). The 95% CI (assuming a t-distribution) is 1.04 to 1.99 degrees, with an average amount of implicit adaptation of about 1.5 degrees. That is much less than the roughly 6 degrees we see in the other conditions (a quarter), but also definitely not 0.
+
+Let's test any effects of delays with an ANOVA:
+
+```{r}
+delayedFeedbackANOVA()
+```
+
+So we can see that terminal feedback decreases initial implicit adaptation but does not eliminate it, and that further delays have no effect on initial implicit adaptation.
 
 # Reach deviations as a function of rotation size
 
@@ -272,7 +295,9 @@ At least within a single session, the cap parameter of the capped fixed-rate fun
 
 # Save plots in standard file formats
 
-```{r}
+The chunk below is not executed by default. Run it manually to get all data figures in publication quality formats.
+
+```{r eval=FALSE}
 for (target in c('pdf','svg','png','tiff')) {
   fig23_data(target=target)
   fig23_data(models=TRUE, target=target)
