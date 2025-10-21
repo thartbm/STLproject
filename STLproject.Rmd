@@ -216,39 +216,29 @@ We don't need this in the paper, as it doesn't really add any information.
 
 Explicit strategies would not benefit participants throughout single-trial learning. This means it might be a better way to assess implicit adaptation than long exposure paradigms where strategies are useful. Participants in our single-trial learning paradigm also engaged in a long exposure block of 200 trials with a 20° rotation that should not evoke any strategies (or at least, not a lot).
 
-We can use the two functions to get predictions for the amount of adaptation after a single rotated trial in this longer training phase. We also need an estimate of implicit adaptation on the very first trial. There are multiple ways to go about this.
+We use this to see if STL is related to long exposure adaptation.
 
-First, we could just take the reach deviation on the first trial, but that is the most noisy estimate we can get, and is hence not very informative. We could then average across a few trials, but that no longer matches what our STL data provides. The best (least noisy) estimate of reach deviations on the first trial can be obtained by fitting an exponential decay function to the learning curve, and taking the value after the first rotated trial. This estimate is based on the full data set for each participant and should hence have the least amount of noise - assuming the function fits equally well throughout the timecourse.
+Here, we plot A) the learning curves, B) the predictions from capped fixed rate model fitted to the point-target STL data of the first reach deviations in the long exposure curves as captured by the values after 1 trial in an exponential fit. Since the exponentials might be underestimating the first trial, we check if this is the case in C) by comparing the actual first reach deviation with the exponential fits.
 
-We can also get a second estimate of implicit adaptation, which we obtain from reach aftereffects in a block of 20 (no-cursor / zero-clamped?) trials immediately following the 200 rotated trials. We also fit an exponential decay function to this data, and use the first value as an estimate of reach aftereffects after 200 trials. This does NOT tell us the level of implicit adaptation that would be predicted from STL, but it does tell us the asymptotic level of implicit adaptation.
-
-Here, we plot the predictions, based only on the point target data:
-
-```{r fig.width=7, fig.height=8}
-fig3_learningPrediction()
+```{r fig.width=5.5, fig.height=5.5}
+fig4_learningPrediction()
 ```
 
 First, we can see that participants adapted to the rotation.
 
-The predictions from the capped fixed-rate model seem to overshoot the learning according to the exponential fit. We check by how much and calculate AICs for the two model fits, to see if the capped model or attribution model predicts learning in the exponential phase better.
+The predictions from the capped fixed-rate model seem to overshoot the learning according to the exponential fit. We fit a linear regression, with the intercept set to 0:
 
 ```{r}
-comparePredictions()
+firstTrialRegression()
 ```
 
-With adjusted R-squared of 0.39 or higher, and all p-values well below 0.001, all fits are reasonable. The AIC's for the predictions are also very similar for the capped and attribution models, in all 3 groups. And while all the AIC for the capped data is smaller in all 3 groups, this again indicates no big difference between the two approaches.
-
-There is one difference between the two models: the slopes. As can perhaps also be made out in the figure, the slopes of the predictions from the capped model is slightly higher (0.39, 0.46 and 0.56) as compared to the attenuation model (0.34, 0.43 and 0.48 respectively). 
+The fit works. The slope is 0.48175, meaning that STL predicts about twice as much learning as we see in the exponential. Nevertheless, there is a significant relationship (F(1,127)=97.26, p<2.2e-16, R^2_adj=0.4292).
 
 ## Potential problems with exponential fit
 
-The slopes are lower than 1, which could mean that the exponential fit underestimates the initial learning. There could also be a difference in responses when participants are doing STL or when they do a long exposure task right after an extended aligned baseline with reinforcement of acquiring the target. First, we want to test if the exponential fit's estimate of people's reach deviation after 1 rotated trial is systematically lower than what they actually do.
+The slope is lower than 1, which could mean that the exponential fit underestimates the initial learning. There could also be a difference in responses when participants are doing STL or when they do a long exposure task right after an extended aligned baseline with reinforcement of acquiring the target. First, we want to test if the exponential fit's estimate of people's reach deviation after 1 rotated trial is systematically lower than what they actually do.
 
 Let's first look at the data, comparing the exponential fit's values for that first trial with actual behavior on that trial.
-
-```{r fig.width=7, fig.height=4}
-fig7_1stTrialFits()
-```
 
 The differences between the two don't look very different, but if anything the exponential fit would over-estimate the initial change. Let's test them anyway.
 
@@ -258,16 +248,17 @@ firstTrialTest()
 
 At least in t-tests, they do not show much of a difference. 
 
-What we can also see is that the raw data is very noisy. The ideal response would have been at 20 degrees, but many reaches go in the opposite direction. So using a function fit on the whole sequence indeed reduces noise, and as the above analysis shows, does not systematically mis-estimate the response on the first trial in either direction. At least not by a large amount. If anything, the average prediction from the exponential fit is a little larger than the average of the actual data, which would indicate an effect in the other direction than what could explain the slopes below 1 in the comparisons between what the STL data says and what the exponential fits say.
+What we can also see is that the raw data is very noisy. The ideal response would have been at 20 degrees, but many reaches go in the opposite direction. So using a function fit on the whole sequence indeed reduces noise, and as the above analysis shows, does not systematically mis-estimate the response on the first trial in either direction. At least not by a large amount. If anything, the average prediction from the exponential fit is a little larger than the average of the actual data, which would indicate an effect in the other direction than what could explain the slopes below 1 in the comparisons between what the STL data says and what the exponential fits say. We'll this rest here for now.
 
 # Test Restest reliability
 
 Here we test if the fits give more or less the same fitted parameters in the first 2 superblocks as they do in the last 2 superblocks (we just leave the middle one be). We plot the second parameter fits over the first parameter fits.
 
-```{r fig.width=6, fig.height=7}
-fig8_retest()
+```{r fig.width=6, fig.height=3.5}
+fig5_retest()
 ```
-The two parameters for the fixed capped-rate function are in the top row, and the two parameters for the attenuation function are in the bottom row. Only the data on the cap parameter looks good.
+
+Only the data on the cap parameter looks good.
 
 Let's do linear regressions:
 
@@ -275,19 +266,18 @@ Let's do linear regressions:
 doTestRetestRegressions()
 ```
 
-An ordinary least-squares regression on the cap parameter values is significant [R^2_adj:  0.189, F(1,126)=30.6, p=1.755e-07], but so is a linear regression on the width parameter of the attenuation model [R^2_adj=0.03836, F(1,126)=6.065, p=0.01514]. However, we can also see in the figure that for a majority of participants one or both of the width parameters are at the maximum of 40 degrees. Given previous studies, those are not reasonable values. Of course the fitted functions also do not match the data very well.
+An ordinary least-squares regression on the cap parameter values is significant [R^2_adj:  0.189, F(1,126)=30.6, p=1.755e-07].
 
-Linear regressions on the parameter values for the other two parameters are not significant.
-
-However, the cap parameter of the capped fixed-rate function has some measure of reliability, at least within a single session. This means that this parameter could be used to compare pre-and post intervention performance within a participant (and within a session) without worrying about savings or even offline gains. Comparing groups on this parameter might also be possible, but could require much more data per participant or many more participants to get more accurate fits and account for inter-participant variability.
+At least within a single session, the cap parameter of the capped fixed-rate function has some measure of reliability. This means that this parameter could be used to compare pre-and post intervention performance within a participant (and within a session) without worrying about savings or even offline gains. Comparing groups on this parameter might also be possible, but could require much more data per participant or many more participants per group to get more accurate fits and account for inter-participant variability.
 
 # Save plots in standard file formats
 
 ```{r}
 for (target in c('pdf','svg','png','tiff')) {
-  fig2_data(target=target)
-  fig3_learningPrediction(target=target)
-  fig4_retest(target=target)
+  fig23_data(target=target)
+  fig23_data(models=TRUE, target=target)
+  fig4_learningPrediction(target=target)
+  fig5_retest(target=target)
 }
 
 ```
