@@ -41,8 +41,8 @@ fig23_data <- function(models=FALSE, target='inline') {
   Reach::setupFigureFile(
     target = target,
     filename = filename,
-    width = 5,
-    height = 5.5,
+    width = width,
+    height = height,
     dpi=300
   )
   
@@ -775,6 +775,19 @@ fig5_retest <- function(target='inline') {
     
     axis(side=1,at=seq(lim[1],lim[2],length.out=list('r'=6, 'c'=5, 's'=6, 'w'=5)[[parameter]]),cex.axis=1.0)
     axis(side=2,at=seq(lim[1],lim[2],length.out=list('r'=6, 'c'=5, 's'=6, 'w'=5)[[parameter]]),cex.axis=1.0)
+    
+    if (parameter=='c') {
+      
+      legend( x = 0,
+              y = 17,
+              legend = c('45°', '60°', '90°'),
+              pch=16,
+              col=c('#FF0000ff', '#9900FFff', '#0099FFFF'),
+              bty='n',
+              xpd=T
+      )
+      
+    }
     
   }
   
