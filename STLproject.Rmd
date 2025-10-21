@@ -298,7 +298,7 @@ At least within a single session, the cap parameter of the capped fixed-rate fun
 The chunk below is not executed by default. Run it manually to get all data figures in publication quality formats.
 
 ```{r eval=FALSE}
-for (target in c('pdf','svg','png','tiff')) {
+for (target in c('png','pdf','tiff','svg')) {
   fig23_data(target=target)
   fig23_data(models=TRUE, target=target)
   fig4_learningPrediction(target=target)
