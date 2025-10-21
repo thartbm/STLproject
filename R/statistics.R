@@ -409,18 +409,27 @@ comparePredictions <- function() {
 # compare predicted and actual first long exposure trials -----
 
 firstTrialTest <- function () {
+
+  df <- getFirstTrialData()
+
+  print(t.test(df$prediction, df$reachdeviation_deg, paired=TRUE))
+
+}
+
+firstTrialRegression <- function() {
   
-  firstTrials <- getFirstTrialData()
+  pd <- getPredictionData()
+  predictions <- rbind(pd[['45']], pd[['60']], pd[['90']])
   
-  for (maxrot in c(45,60,90)) {
-    
-    cat(sprintf('T-test for %d degree group:\n', maxrot))
-    
-    df <- firstTrials[which(firstTrials$maxrot == maxrot),]
-    
-    print(t.test(df$prediction, df$reachdeviation_deg, paired=TRUE))
-    
-  }
+  ppreds <- predictions[which(predictions$target == 'point'),]
+  # 
+  X = ppreds$capped
+  Y = ppreds$exponential
+  
+  # plot linear fit with intercept=0
+  linmod <- lm(Y~X+0)
+  
+  print(summary(linmod))
   
 }
 
@@ -431,8 +440,8 @@ doTestRetestRegressions <- function() {
   
   allPar <- read.csv('data/testRetest_fits.csv', stringsAsFactors = F)
   
-  
-  for (parameter in c('r','c','s','w')) {
+  # for (parameter in c('r','c','s','w')) {
+  for (parameter in c('r','c')) {
     
     
     cat(paste0(list('r'='CAPPED FIXED-RATE: RATE',
