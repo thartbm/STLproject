@@ -141,7 +141,7 @@ fig23_data <- function(models=FALSE, target='inline') {
                col=c('#0066FFFF','#0066FFFF','#0066FFFF'),
                bty='n')
       } else {
-        legend(x=50,y=6,
+        legend(x=15,y=2.2,
                legend=c('point target', 'arc target'),
                lwd=c(2,2),
                col=c('#0066FFFF','#FF6600FF'),
@@ -153,7 +153,7 @@ fig23_data <- function(models=FALSE, target='inline') {
     }
     
     if (maxrot == 45) {
-      if (delays) {
+      if (!models) {
         
         colors <- getColors()
         
@@ -184,7 +184,7 @@ fig23_data <- function(models=FALSE, target='inline') {
         lines( x = c(48, 92),
               y = c(0, 0),
               col = '#999999',
-              lty = 1,
+              lty = 2,
               xpd=TRUE)
         
         axis( side = 1,
@@ -194,6 +194,10 @@ fig23_data <- function(models=FALSE, target='inline') {
         # axis( side = 2,
         #       at = seq(-2,6,2))
         
+        text( x = 70,
+              y = 8.8,
+              labels = 'delays:',
+              xpd=TRUE)
         legend( x = 75,
                 y = 10,
                 # title='delay:',
@@ -692,7 +696,7 @@ fig5_retest <- function(target='inline') {
   
   Reach::setupFigureFile(
     target = target,
-    filename = 'doc/fig4_retest',
+    filename = 'doc/fig5_retest',
     width = 8,
     height = 4.5,
     dpi=300
