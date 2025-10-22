@@ -288,6 +288,39 @@ taskErrorPostHocs <- function(verbose=FALSE, dfout=TRUE) {
 
 # delayed feedback -----
 
+terminalFeedbackANOVA <- function() {
+  
+  fd <- read.csv('data/FDaftereffects.csv', stringsAsFactors = FALSE)
+  
+  fd <- fd[which(fd$delay == 0),]
+  fd <- aggregate(aftereffect ~ participant * rotation, data=fd, FUN=mean)
+  
+  d45 <- read.csv('data/pointTargetSTL_45.csv', stringsAsFactors = FALSE)
+  
+  d45 <- d45[which(d45$rotation %in% unique(fd$rotation)),]
+  
+  d45 <- aggregate(response ~ participant * rotation, data=d45, FUN=mean)
+  
+  names(d45)[which(names(d45)=='response')] <- 'aftereffect'
+  
+  d45$group <- 'continuous'
+  fd$group <- 'terminal'
+  
+  df <- rbind(fd, d45)
+  
+  df$group <- as.factor(df$group)
+  
+  print(afex::aov_ez(
+    id = 'participant',
+    dv = 'aftereffect',
+    data = df,
+    within = c('rotation'),
+    between = c('group'),
+    type=3
+  ))
+  
+}
+
 terminalFeedbackTtest <- function() {
   
   df <- read.csv('data/FDaftereffects.csv', stringsAsFactors = FALSE)
