@@ -311,7 +311,8 @@ delayedFeedbackANOVA <- function() {
     id = 'participant',
     dv = 'aftereffect',
     data = df,
-    within = c('delay', 'rotation')
+    within = c('delay', 'rotation'),
+    type=3
   ))
   
 }
