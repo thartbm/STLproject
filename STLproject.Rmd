@@ -14,13 +14,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-Implicit single trial learning rates are:
+To summarize our findings, implicit single trial learning rates are:
 
-- sensitive to task errors
-- capped at a maximum of around 6°
-- somewhat predictive of prolonged adaptation
-- decreased with terminal feedback, but 
-- do not further decrease with delayed feedback
+1. sensitive to task errors
+2. decreased with terminal feedback, but 
+3. do not further decrease with delayed feedback
+4. not attenuated for larger errors, but
+5. capped at a maximum of around 6°
+6. somewhat predictive of prolonged adaptation
+7. stable across time for the cap parameter of our model
+
 
 # Overview
 
@@ -145,7 +148,7 @@ Several papers claim that delaying feedback eliminates implicit adaptation, but 
 
 The 45 group experienced the same range of rotations, but with continuous feedback, so it serves as a reasonable comparison group. We can see that the aftereffects are much reduced for all delays, including the 0 ms delay, which is essentially terminal feedback condition. It does not look like there are any further decreases with longer delays however.
 
-But first, are there any reach aftereffects after only 1 trial with terminal feedback? We do a t-test versus 0 for the 0 ms delay condition:
+First, the aftereffects look really small. Are there actually any reach aftereffects after only 1 trial with terminal feedback? We do a t-test versus 0 for the average reach aftereffects across rotations in the 0 ms delay condition:
 
 ```{r}
 terminalFeedbackTtest()
@@ -153,13 +156,22 @@ terminalFeedbackTtest()
 
 Yes, we do get implicit reach aftereffects after a single terminal feedback trial (t(49)=6.384, p<.001). The 95% CI (assuming a t-distribution) is 1.04 to 1.99 degrees, with an average amount of implicit adaptation of about 1.5 degrees. That is much less than the roughly 6 degrees we see in the other conditions (a quarter), but also definitely not 0.
 
-Let's test any effects of delays with an ANOVA:
+Is that difference with the 45 degree group significant though? It sure looks like it in the figure, but here we test this anyway with a 2x6 ANOVA, using group (45 degree group vs. the 0 ms delay / terminal feedback condition) and the 6 shared rotations sizes as factors.
+
+```{r}
+terminalFeedbackANOVA()
+```
+There is a main effect of group (F(1,79)=80.60, p<.001), and no other effects. This means that terminal feedback decreases initial implicit adaptation compared to continuous feedback.
+
+Let's test any effects of delays with a 5x6 repeated measures ANOVA:
 
 ```{r}
 delayedFeedbackANOVA()
 ```
 
-So we can see that terminal feedback decreases initial implicit adaptation but does not eliminate it, and that further delays have no effect on initial implicit adaptation.
+So we can see that terminal feedback decreases initial implicit adaptation but does not eliminate it, and that further delays have no effect on initial implicit adaptation. It also doesn't really matter which rotation size is used.
+
+Of course, we test 6 (absolute) rotation sizes and 5 delays, so we do not have 10 repetitions per condition as in the main experiment here, but "only" 8, and 240 STL bouts per participant. Nevertheless, with a sample size of 50 participants, we can be fairly confident that there is no effect of feedback delay on initial implicit adaptation. Studies reporting that delayed feedback eliminates implicit adaptation, probably measure the effect of terminal feedback instead, and this does _not_ eliminate implicit adaptation but rather reduces it.
 
 # Reach deviations as a function of rotation size
 
