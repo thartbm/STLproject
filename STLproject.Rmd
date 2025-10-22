@@ -3,9 +3,9 @@ title: "Implicit Motor Adaptation in Single-Trial Learning"
 author: "Marius 't Hart"
 date: "2024-10-20"
 output:
-  html_document: default
   word_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
